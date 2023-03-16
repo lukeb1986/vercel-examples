@@ -6,5 +6,7 @@ export default async function handler(
   res: NextApiResponse<any>
 ) {
   const { taskId, workspace } = req.body as any;
-  return res.json(await getTask({taskId, workspace}))
+  const outer_task = await getTask({taskId, workspace});
+  return res.json(outer_task)
 }
+

@@ -3,19 +3,21 @@ import { getSteamshipPackage } from '@steamship/steamship-nextjs'
 import {Task, TaskStatus} from "@steamship/client";
 import { ImageResults } from '../../util/datamodel';
 
+const decode = (str: string):string => Buffer.from(str, 'base64').toString('binary');
+
 /*
  * Returns a Task<ImageResults> object
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Task<ImageResults>>
+  res: NextApiResponse<any>
 ) {
 
   const errorResponse = (message: string) => {
     return res.json({ 
       state: 'failed', 
       statusMessage: message
-    } as Task<ImageResults>)
+    })
   }
 
   /*
@@ -29,16 +31,10 @@ export default async function handler(
   if (!title) { return errorResponse("Please enter a title.") }
   if (!description) { return errorResponse("Please enter a description.") }
 
-  const {message, who} = messages[messages.length - 1]
-
-  if (!message) {
-    return errorResponse("Please last message found.")
-  }
-
   try {
     // Fetch a stub to the Steamship-hosted backend.
     // Use a different workspace name per-user to provide data isolation.
-    const uniqueUserToken = "user-1234";
+    const uniqueUserToken = "user-103";
     const packageHandle = process.env.STEAMSHIP_PACKAGE_HANDLE as string;
     const workspace = `${packageHandle}-${uniqueUserToken}`;
 
@@ -50,38 +46,35 @@ export default async function handler(
     // Invoke a method on the package defined in steamship/api.py. Full syntax: pkg.invoke("method", {args}, "POST" | "GET")
     // Since we use invokeAsync here, the result will be a task that we can poll. This guarantees the Vercel function
     // can return quickly without having the paid plan.
-    const resp: Task<any> = await pkg.invokeAsync('send_message', {
-      message: message,
-      chat_history_handle: 'default' // Note: the bundled chat package provides different chat "rooms" with a workspace.
-    })
+    const resp: Task<any> = await pkg.invokeAsync('generate', {title, description})
+    await resp.wait()
+    const task = JSON.parse(decode(resp.output)) as any;
 
-    const taskId = resp.taskId;
+    const taskId = task.taskId;
 
     if (!taskId) {
       return res.json({ 
         state: 'failed',
         statusMessage: "No taskId was returned from Steamship"}
-      as Task<ImageResults>));
-    } else {
-      return res.json(
-        {
-          taskId, 
-          workspaceId
-        } as Task<ImageResults>)
       );
+    } else {
+      return res.json({
+          taskId, 
+          workspace
+      });
     }
   } catch (ex) {
     console.log(ex)
     const awaitedEx = (await ex) as any;
 
     if (awaitedEx?.response?.data?.status?.statusMessage) {
-      return res.json({ error: awaitedEx?.response?.data?.status?.statusMessage })
+      return res.json({ state: 'failed', statusMessage: awaitedEx?.response?.data?.status?.statusMessage })
     }
 
     console.log(typeof awaitedEx)
     console.log(awaitedEx)
 
-    return res.json({ error: `There was an error responding to your message.` })
+    return res.json({ state: 'failed', statusMessage: `There was an error responding to your message.` })
   }
 
 }
