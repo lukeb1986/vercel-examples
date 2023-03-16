@@ -2,9 +2,9 @@
 
 [![Steamship](https://raw.githubusercontent.com/steamship-core/python-client/main/badge.svg)](https://www.steamship.com/build/langchain-on-vercel?utm_source=github&utm_medium=badge&utm_campaign=github_repo&utm_id=github_vercel_repo_ai_chatgpt)
 
-This example shows how to implement a persistent chat bot using Next.js, API Routes, [OpenAI](https://beta.openai.com/docs/api-reference/completions/create), and [Steamship](https://www.steamship.com).
+This example shows how to implement a generative image website using Next.js, API Routes, [OpenAI](https://beta.openai.com/docs/api-reference/completions/create), and [Steamship](https://www.steamship.com).
 
-![Screen Shot](https://steamship.com/data/templates/langchain-on-vercel/chatbot-card.png)
+![Screen Shot](https://steamship.com/data/templates/langchain-on-vercel/image-generator.png)
 
 ### Components
 
@@ -20,9 +20,9 @@ This example shows how to implement a persistent chat bot using Next.js, API Rou
 Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
 
 ```bash
-npx create-next-app --example https://github.com/steamship-core/vercel-examples/tree/main/ai-chatgpt
+npx create-next-app --example https://github.com/steamship-core/vercel-examples/tree/main/image-generator
 # or
-yarn create next-app --example https://github.com/steamship-core/vercel-examples/tree/main/ai-chatgpt
+yarn create next-app --example https://github.com/steamship-core/vercel-examples/tree/main/image-generator
 ```
 
 ### Deploy your Steamship Stack
@@ -67,4 +67,4 @@ yarn dev
 
 The app should be up and running at http://localhost:3000.
 
-When you like what you see, deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=steamship-ai-chatgpt) ([Documentation](https://nextjs.org/docs/deployment)).
+When you like what you see, deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=steamship-image-generator) ([Documentation](https://nextjs.org/docs/deployment)).
