@@ -8,16 +8,21 @@ function Home() {
   const {query, isReady} = useRouter()
 
 
-  const makeBaseUrl = (userHandle?: string, instanceHandle?: string) => {
+  const makeBaseUrl = (userHandle?: string, instanceHandle?: string, isStaging?: boolean) => {
     if (userHandle && instanceHandle){
+      if (isStaging){
+        return `https://${userHandle}.apps.staging.steamship.com/${instanceHandle}/${instanceHandle}`
+    } else {
       return `https://${userHandle}.steamship.run/${instanceHandle}/${instanceHandle}`
+    }
     } else {
       return null
     }
   }
 
-  let {userHandle, instanceHandle} = query
-  const baseUrl = makeBaseUrl(userHandle as string, instanceHandle as string) || process.env.NEXT_PUBLIC_BASE_URL as string;
+  let {userHandle, instanceHandle, isStaging} = query
+  const baseUrl = makeBaseUrl(userHandle as string, instanceHandle as string, isStaging === 'true') || process.env.NEXT_PUBLIC_BASE_URL as string;
+  console.log("baseUrl", baseUrl)
   const errorMessage = (
         <div className="rounded-md bg-red-50 p-4">
             <div className="flex">
