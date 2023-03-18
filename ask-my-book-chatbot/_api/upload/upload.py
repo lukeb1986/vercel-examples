@@ -10,7 +10,7 @@ from steamship import Steamship
 from steamship_langchain.vectorstores import SteamshipVectorStore
 
 # Step 1: Give your index a name
-INDEX_NAME = "test-123"
+INDEX_NAME = "test-enias"
 
 # Step 2: List the books or folders of books you want to add to your index
 BOOKS_OR_BOOK_FOLDERS = [
@@ -72,10 +72,13 @@ if __name__ == "__main__":
             index_document(data_path, doc_index, documents)
 
     package_instance = client.use(
-        "ask-my-book-chat-api", config={"index_name": INDEX_NAME}, version="0.0.22"
+        "ask-my-book-chat-api", config={"index_name": INDEX_NAME}, version="0.0.23"
     )
     print("Your documents are successfully added to the index")
     print("You can query your documents on this endpoint: ")
     print(package_instance.invocation_url)
+
+    response = package_instance.invoke("answer", question="What is specific knowledge?")
+    print(response)
 
 
