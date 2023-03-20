@@ -1,7 +1,7 @@
 {
 	"type": "package",
 	"handle": "ask-my-book-chat-api",
-	"version": "0.0.23",
+	"version": "0.1.6",
 	"description": null,
 	"author": "Enias",
 	"entrypoint": "Unused",
@@ -19,6 +19,11 @@
 			"type": "string",
 			"description": null,
 			"default": null
+		},
+		"model_name": {
+			"type": "string",
+			"description": null,
+			"default": "gpt-3.5-turbo"
 		},
 		"default_chat_session_id": {
 			"type": "string",

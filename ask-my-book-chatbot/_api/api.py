@@ -5,15 +5,16 @@ import langchain
 from langchain.chains import ChatVectorDBChain
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
+from steamship import Steamship
 from steamship.invocable import Config
 from steamship.invocable import PackageService, post, get
-from steamship_langchain import OpenAI
+from steamship_langchain.llms.openai import OpenAIChat
 from steamship_langchain.vectorstores import SteamshipVectorStore
 
 from chat_history import ChatHistory
 from constants import DEBUG
 from fact_checker import FactChecker
-from prompts import ANSWER_QUESTION_PROMPT, CONDENSE_QUESTION_PROMPT
+from prompts import CONDENSE_QUESTION_PROMPT, ANSWER_QUESTION_PROMPT_SELECTOR
 
 langchain.llm_cache = None
 
@@ -21,6 +22,7 @@ langchain.llm_cache = None
 class AskMyBook(PackageService):
     class AskMyBookConfig(Config):
         index_name: str
+        model_name: str = "gpt-3.5-turbo"
         default_chat_session_id: Optional[str] = "default"
 
     config: AskMyBookConfig
@@ -46,7 +48,7 @@ class AskMyBook(PackageService):
 
     @post("/answer", public=True)
     def answer(
-        self, question: str, chat_session_id: Optional[str] = None
+            self, question: str, chat_session_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Answer a given question using a collection of source documents."""
         chat_session_id = chat_session_id or self.config.default_chat_session_id
@@ -85,14 +87,15 @@ class AskMyBook(PackageService):
         """Construct the question answering chain."""
         doc_index = self._get_index()
 
+        llm = OpenAIChat(client=self.client, model_name=self.config.model_name, temperature=0, verbose=DEBUG)
         answer_question_chain = load_qa_chain(
-            OpenAI(client=self.client, temperature=0, verbose=DEBUG),
+            llm,
             chain_type="stuff",
-            prompt=ANSWER_QUESTION_PROMPT,
+            prompt=ANSWER_QUESTION_PROMPT_SELECTOR.get_prompt(llm),
             verbose=DEBUG,
         )
         condense_question_chain = LLMChain(
-            llm=OpenAI(client=self.client, temperature=0, verbose=DEBUG),
+            llm=OpenAIChat(client=self.client, model_name=self.config.model_name, temperature=0, verbose=DEBUG),
             prompt=CONDENSE_QUESTION_PROMPT,
         )
         return ChatVectorDBChain(
@@ -102,3 +105,19 @@ class AskMyBook(PackageService):
             return_source_documents=True,
             top_k_docs_for_context=2,
         )
+
+
+if __name__ == '__main__':
+    index_name = "test-enias"
+    client = Steamship(workspace=index_name)
+    amb = AskMyBook(client, config={"index_name": index_name})
+
+    print(amb.get_indexed_documents())
+    response = amb.answer("What is the color of a banana?")
+    print(response)
+
+    response = amb.answer("Are you a Trump fan?")
+    print(response)
+
+    response = amb.answer("Are you a trump fan?")
+    print(response)

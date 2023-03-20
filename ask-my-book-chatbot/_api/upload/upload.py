@@ -72,12 +72,12 @@ if __name__ == "__main__":
             index_document(data_path, doc_index, documents)
 
     package_instance = client.use(
-        "ask-my-book-chat-api", config={"index_name": INDEX_NAME}, version="0.0.23"
+        "ask-my-book-chat-api", config={"index_name": INDEX_NAME}, version="0.1.5"
     )
     print("Your documents are successfully added to the index")
     print("You can query your documents on this endpoint: ")
     print(package_instance.invocation_url)
-
+    print(package_instance.package_version_handle)
     response = package_instance.invoke("answer", question="What is specific knowledge?")
     print(response)
 
