@@ -15,6 +15,7 @@ export default function Documents({ baseUrl }: { baseUrl: string }) {
     });
 
     const documents = await response.json();
+    console.log("documents", documents)
     setDocuments(documents)
   };
 

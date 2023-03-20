@@ -1,10 +1,14 @@
-import json
+import re
 from typing import Type, Optional, Dict, Any, List
 
 import langchain
 from langchain.chains import ChatVectorDBChain
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
+from langchain.document_loaders import PagedPDFSplitter
+from pydantic.networks import HttpUrl
+from steamship import MimeTypes, SteamshipError
+from steamship.data.embeddings import EmbeddingIndex
 from steamship import Steamship
 from steamship.invocable import Config
 from steamship.invocable import PackageService, post, get
@@ -15,8 +19,15 @@ from chat_history import ChatHistory
 from constants import DEBUG
 from fact_checker import FactChecker
 from prompts import CONDENSE_QUESTION_PROMPT, ANSWER_QUESTION_PROMPT_SELECTOR
+from ledger import Ledger
 
 langchain.llm_cache = None
+import requests
+from pathlib import Path
+
+SUPPORTED_MIME_TYPES = {
+    MimeTypes.PDF
+}
 
 
 class AskMyBook(PackageService):
@@ -31,20 +42,55 @@ class AskMyBook(PackageService):
         super().__init__(*args, **kwargs)
         self.qa_chatbot_chain = self._get_qa_chain()
         self.fact_checker = FactChecker(self.client)
+        self.ledger = Ledger(self.client, self.config.index_name)
 
     @classmethod
     def config_cls(cls) -> Type[Config]:
         return cls.AskMyBookConfig
 
+    @post("/add_document")
+    def add_document(self,
+                     url: HttpUrl,
+                     name: str,
+                     mime_type: Optional[MimeTypes] = None) -> bool:
+        if mime_type not in SUPPORTED_MIME_TYPES:
+            raise SteamshipError("Unsupported mimeType")
+
+        file_path = Path('/tmp/' + name)
+        with file_path.open("wb") as f:
+            f.write(requests.get(url).content)
+
+        self.add_document_from_path(file_path, name)
+        return True
+
+    def add_document_from_path(self, file_path, name) -> None:
+        doc_index = self._get_index()
+        loader = PagedPDFSplitter(str(file_path.resolve()))
+        pages = loader.load_and_split()
+        doc_index.add_texts(
+            texts=[re.sub("\u0000", "", page.page_content) for page in pages],
+            metadatas=[{**page.metadata, "source": name} for page in pages],
+        )
+        self.ledger.add_document(name)
+
     @get("/documents", public=True)
     def get_indexed_documents(self) -> List[str]:
         """Fetch all the documents in the index"""
-        return list(
-            set(
-                json.loads(item.metadata)["source"]
-                for item in self._get_index().index.index.list_items().items
-            )
+        return self.ledger.list_documents()
+
+    @post("/reset")
+    def reset(self) -> bool:
+        """Fetch all the documents in the index"""
+        doc_index = self._get_index()
+        doc_index.index.index.delete()
+        doc_index.index.index = EmbeddingIndex.create(
+            client=self.client,
+            handle=doc_index.index.handle,
+            embedder_plugin_instance_handle=doc_index.index.embedder.handle,
+            fetch_if_exists=False,
         )
+        self.ledger.reset()
+        return True
 
     @post("/answer", public=True)
     def answer(
@@ -113,11 +159,11 @@ if __name__ == '__main__':
     amb = AskMyBook(client, config={"index_name": index_name})
 
     print(amb.get_indexed_documents())
-    response = amb.answer("What is the color of a banana?")
-    print(response)
-
-    response = amb.answer("Are you a Trump fan?")
-    print(response)
-
-    response = amb.answer("Are you a trump fan?")
-    print(response)
+    # response = amb.answer("What is the color of a banana?")
+    # print(response)
+    #
+    # response = amb.answer("Are you a Trump fan?")
+    # print(response)
+    #
+    # response = amb.answer("Are you a trump fan?")
+    # print(response)
