@@ -71,6 +71,9 @@ function Home() {
     router.push(router)
   }
 
+  let {userHandle} = query
+
+
   if (isReady && baseUrl === undefined){
     let {userHandle, instanceHandle, workspaceHandle, isStaging} = query
     let baseUrl = makeBaseUrl(userHandle as string, instanceHandle as string, workspaceHandle as string, isStaging === 'true') || process.env.NEXT_PUBLIC_BASE_URL as string;
@@ -100,7 +103,7 @@ function Home() {
     <Page className=" max-w-7xl  flex flex-col gap-12 ">
       <div className="grid grid-cols-2 gap-4">
         <div> 
-        <AddLectureForm/>
+        {!userHandle && <AddLectureForm workspaceHandle={workspaceHandle}/>}
         
         <section className="flex flex-col gap-6 " >
         { baseUrl && <Lectures baseUrl={baseUrl as string}/>}

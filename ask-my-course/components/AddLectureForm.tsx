@@ -4,7 +4,7 @@ import LoadingDots from "./LoadingDots";
 import { useCookies } from 'react-cookie'
 
 
-export default function AddLectureForm() {
+export default function AddLectureForm(workspaceHandle) {
   const [lecture, setLecture] = useState('')
   const [loading, setLoading] = useState(false)
   const [cookie, setCookie] = useCookies(['ask-my-course-user'])
@@ -19,7 +19,7 @@ export default function AddLectureForm() {
         },
           body: JSON.stringify({
             youtube_url: youtube_url,
-            workspaceHandle: cookie['ask-my-course-user']
+            workspaceHandle: workspaceHandle
           }),
   
       });
