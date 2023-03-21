@@ -9,9 +9,13 @@ export default function ShareButton() {
   const [cookie] = useCookies(COOKIE_NAMES)
   const [showModal, setShowModal] = useState<boolean>(false)
   const [sharableUrl, setSharableUrl] = useState<string|undefined>(undefined)
+  const {query} = useRouter()
+
+
 
   useEffect(() => {
-    setSharableUrl(`?userHandle=${cookie["userHandle"]}&workspaceHandle=${cookie["workspaceHandle"]}&instanceHandle=${cookie["instanceHandle"]}`)
+    let {userHandle, instanceHandle, workspaceHandle} = query
+    setSharableUrl(`?userHandle=${userHandle||cookie["userHandle"]}&workspaceHandle=${instanceHandle||cookie["workspaceHandle"]}&instanceHandle=${workspaceHandle||cookie["instanceHandle"]}`)
   })
 
 
