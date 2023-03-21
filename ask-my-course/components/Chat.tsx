@@ -4,6 +4,7 @@ import { type Message, ChatLine, LoadingChatLine } from './ChatLine'
 import { useCookies } from 'react-cookie'
 import { HiOutlineArrowRight, HiOutlineRefresh, HiOutlinePlus } from 'react-icons/hi';
 import LoadingDots from "./LoadingDots";
+import clsx from 'clsx'
 
 const COOKIE_NAME = 'ask-my-course-steamship'
 
@@ -11,12 +12,14 @@ const COOKIE_NAME = 'ask-my-course-steamship'
 export const initialMessages: Message[] = [
   {
     who: 'bot',
-    message: 'Hi! I just read your book. Ask me a question about it!',
+    message: 'Hi! What can I help you with?',
   },
 ]
 
 const InputMessage = ({ input, setInput, sendMessage, loading }: any) => (
-  <div className="mt-6 flex clear-both">
+  <div className="mt-6">
+  <p className="text-center text-xs text-zinc-500 py-1">Powered By <a target="_blank" className="text-zinc-700" rel="noreferrer" href="https://steamship.com">steamship.com</a></p>
+  <div className="flex clear-both">
     <input
       type="text"
       aria-label="chat input"
@@ -57,9 +60,10 @@ const InputMessage = ({ input, setInput, sendMessage, loading }: any) => (
                   </Button>
                 )}
   </div>
+  </div>
 )
 
-export function Chat({ baseUrl }: { baseUrl: string }) {
+export function Chat({ className, baseUrl }: { className?: string, baseUrl: string }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState('')
   const [chatSessionId, setChatSessionId] = useState(Math.random().toString(36).substring(7))
@@ -135,9 +139,11 @@ export function Chat({ baseUrl }: { baseUrl: string }) {
 
 
   return (
-    <div>
-    <div className="rounded-2xl border-zinc-100  lg:border lg:p-6">
-      <div className="text-red-600 italic mb-2">! This chatbot lives for 24 hours. Click <span className="underline">here</span> to claim your chatbot for free.</div>
+    <div className={clsx(
+      'overflow-auto flex flex-col justify-between px-2 pt-2',
+      className
+    )}>
+      <div className="text-red-600 italic mb-2 self-center	">! This chatbot lives for 24 hours. Click <span className="underline">here</span> to claim your chatbot for free.</div>
       {messages.map(({ message, who, sources, isPlausible }, index) => (
         <ChatLine key={index} who={who} message={message} sources={sources} isPlausible={isPlausible} />
       ))}
@@ -180,7 +186,6 @@ export function Chat({ baseUrl }: { baseUrl: string }) {
             </div>
           </div>
       )}
-    </div>
     </div>
   )
 }

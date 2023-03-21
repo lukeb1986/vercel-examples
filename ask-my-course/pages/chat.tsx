@@ -1,12 +1,9 @@
-import { Text, Page } from '@vercel/examples-ui'
 import { useRouter } from 'next/router'
-import Lectures from "../components/Lectures";
-import AddLectureForm from "../components/AddLectureForm";
 import {Chat} from "../components/Chat"
 import React, { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie'
 import type { ReactElement } from 'react'
-import Layout from '../components/Layout'
+import EmptyLayout from '../components/EmptyLayout'
 
 export const COOKIE_NAMES = ["userHandle", "workspaceHandle", "instanceHandle", "ownerEmail"]
 
@@ -17,7 +14,7 @@ export type PackageCoordinates = {
 }
 
 
-function Home() {
+function ChatHome() {
   const [baseUrl, setBaseUrl] = useState<string|undefined>(undefined)
   const [ownerEmail, setOwnerEmail] = useState<string|undefined>(undefined)
   const [packageCoordinates, setPackageCoordinates] = useState<PackageCoordinates|undefined>(undefined)
@@ -110,48 +107,19 @@ function Home() {
           </div>
           )
   return (
-    <Page className=" max-w-7xl  flex flex-col gap-12 ">
-
-      {<div>Instance owned by {ownerEmail}</div>}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className='grid gap-10'> 
-        {!userHandle && 
-        <div>
-          <Text className="mb-5" variant="h2">⚙️ Add Lectures</Text>
-          <AddLectureForm ownerEmail={ownerEmail} workspaceHandle={packageCoordinates?.workspaceHandle}/>
-        </div>}
-        
-        <div>
-        <section className="flex flex-col gap-6 " >
-        <Text className="mb-5" variant="h2">📚 Lectures </Text>
-
-        { baseUrl && <Lectures baseUrl={baseUrl as string}/>}
-      </section>
-
-        </div>
-
-        </div>
-        <div>
-              
-        <Text className="mb-5" variant="h2">💬 Your chatbot</Text>
-
-      <section className="flex flex-col gap-3 ">
+    <div className="w-full w-screen flex flex-col gap-12 ">
             { typeof baseUrl == "undefined" && errorMessage}
-             <Chat className="h-[42rem] rounded-2xl border-zinc-100 lg:border lg:p-6" baseUrl={baseUrl as string}/>
-      </section>
-      </div>
-      </div>
-    </Page>
+             <Chat className="min-h-screen " baseUrl={baseUrl as string}/>
+    </div>
   )
 }
 
-Home.getLayout = function getLayout(page: ReactElement) {
+ChatHome.getLayout = function getLayout(page: ReactElement) {
   return (
-    <Layout path="">
+    <EmptyLayout path="">
       {page}
-    </Layout>
+    </EmptyLayout>
   )
 }
 
-export default Home
+export default ChatHome

@@ -33,6 +33,8 @@ export default function Nav({ path }: NavProps) {
 
     <ShareButton/>
 
+
+
     <Button gradientDuoTone="purpleToBlue" className="mr-1" disabled={true}>
   <div className="flex flex-row items-center">
           <Icons.claim className="mr-2 h-5 w-5" /> Claim your chatbot
