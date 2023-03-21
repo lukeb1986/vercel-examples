@@ -8,26 +8,40 @@ import { Button } from '../components/Button'
 import { HiOutlinePlus } from 'react-icons/hi';
 import { useCookies } from 'react-cookie'
 
-const COOKIE_NAME = 'ask-my-course-user'
+export const COOKIE_NAMES = ["userHandle", "workspaceHandle", "instanceHandle", "ownerEmail"]
+
+export type PackageCoordinates = {
+  userHandle?: string
+  workspaceHandle?: string
+  instanceHandle?: string
+}
 
 
 function Home() {
   const [baseUrl, setBaseUrl] = useState<string|undefined>(undefined)
-  const [workspaceHandle, setWorkspaceHandle] = useState<string|undefined>(undefined)
-  const [instanceHandle, setInstanceHandle] = useState<string|undefined>(undefined)
-  const [cookie, setCookie] = useCookies([COOKIE_NAME])
-
+  const [ownerEmail, setOwnerEmail] = useState<string|undefined>(undefined)
+  const [packageCoordinates, setPackageCoordinates] = useState<PackageCoordinates|undefined>(undefined)
+  const [cookie, setCookie] = useCookies(COOKIE_NAMES)
   const {query, isReady} = useRouter()
-  const router = useRouter();
 
 
   useEffect(() => {
-    if (!cookie[COOKIE_NAME]) {
-      setCookie(COOKIE_NAME, Math.random().toString(36).substring(7))
-
+    console.log("useEffect", cookie["ownerEmail"])
+    const workspaceHandle = Math.random().toString(36).substring(7) 
+    if (!cookie["workspaceHandle"]) {
+      setCookie("workspaceHandle", workspaceHandle)
+    }
+    if (cookie["ownerEmail"]) {
+      setOwnerEmail(cookie["ownerEmail"])
     }
   }, [cookie, setCookie])
 
+  const setPackageCoordinatesInCookie = ({ userHandle, workspaceHandle, instanceHandle}: PackageCoordinates) => {
+    console.log("setPackageCoordinatesInCookie", userHandle)
+    setCookie("userHandle", userHandle)
+    setCookie("workspaceHandle", workspaceHandle)
+    setCookie("instanceHandle", instanceHandle)
+  }
 
   const getPublicBaseUrl = async () => {
     const response = await fetch('/api/get_public_base', {
@@ -36,7 +50,7 @@ function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          workspaceHandle: cookie[COOKIE_NAME]
+          workspaceHandle: cookie["workspaceHandle"]
         }),
       });
 
@@ -46,13 +60,17 @@ function Home() {
       const {invocationURL, instanceHandle} = await response.json()
       console.log("invocationUrl", invocationURL, instanceHandle)
       setBaseUrl(invocationURL.substring(0, invocationURL.length - 1))
-      setWorkspaceHandle(workspaceHandle)
-      setInstanceHandle(instanceHandle)
+      const packageCoordinates = {
+        userHandle: 'enias',
+        workspaceHandle: cookie["workspaceHandle"],
+        instanceHandle: instanceHandle
+      }
+      setPackageCoordinates(packageCoordinates)
+      setPackageCoordinatesInCookie(packageCoordinates)
   };
 
 
   const makeBaseUrl = (userHandle?: string, instanceHandle?: string, workspaceHandle?: string, isStaging?: boolean) => {
-    console.log("makeBaseUrl", userHandle, workspaceHandle, instanceHandle, userHandle && instanceHandle)
     if (userHandle && instanceHandle){
       if (isStaging){
         return `https://${userHandle}.apps.staging.steamship.com/${workspaceHandle}/${instanceHandle}`
@@ -63,19 +81,12 @@ function Home() {
     return null
   }
 
-  const goToSharableInstance = () => {
-    console.log("goToSharableInstance")
-    router.query.userHandle = "enias"
-    router.query.instanceHandle = instanceHandle
-    router.query.workspaceHandle = cookie[COOKIE_NAME]
-    router.push(router)
-  }
-
   let {userHandle} = query
 
 
   if (isReady && baseUrl === undefined){
     let {userHandle, instanceHandle, workspaceHandle, isStaging} = query
+    console.log("userHandle", userHandle)
     let baseUrl = makeBaseUrl(userHandle as string, instanceHandle as string, workspaceHandle as string, isStaging === 'true') || process.env.NEXT_PUBLIC_BASE_URL as string;
     console.log("baseUrl", baseUrl)
     if (baseUrl === undefined){
@@ -98,39 +109,39 @@ function Home() {
             </div>
           </div>
           )
-
   return (
     <Page className=" max-w-7xl  flex flex-col gap-12 ">
+
+      {<div>Instance owned by {ownerEmail}</div>}
+
       <div className="grid grid-cols-2 gap-4">
-        <div> 
-        {!userHandle && <AddLectureForm workspaceHandle={workspaceHandle}/>}
+        <div className='grid gap-10'> 
+        {!userHandle && 
+        <div>
+          <Text className="mb-5" variant="h2">⚙️ Add Lectures</Text>
+          <AddLectureForm ownerEmail={ownerEmail} workspaceHandle={packageCoordinates?.workspaceHandle}/>
+        </div>}
         
+        <div>
         <section className="flex flex-col gap-6 " >
+        <Text className="mb-5" variant="h2">📚 Lectures </Text>
+
         { baseUrl && <Lectures baseUrl={baseUrl as string}/>}
       </section>
 
         </div>
+
+        </div>
         <div>
               
-        <Text className="mb-5" variant="h1">Your chatbot: 💬</Text>
+        <Text className="mb-5" variant="h2">💬 Your chatbot</Text>
 
       <section className="flex flex-col gap-3">
         <div className="lg">
             { typeof baseUrl == "undefined" && errorMessage}
              <Chat baseUrl={baseUrl as string}/>
 
-             <span className="mt-5 justify-center content-center	mx-auto flex flex-grow clear-both">
-        <Button onClick={goToSharableInstance} outline={true} gradientDuoTone="greenToBlue">
-  <div className="flex flex-row items-center">
-          <HiOutlinePlus className="mr-2 h-5 w-5" /> Share with friends
-          </div>
-    </Button>
-    <Button  outline={true} disabled={true} gradientDuoTone="greenToBlue" className="ml-2">
-  <div className="flex flex-row items-center">
-          <HiOutlinePlus className="mr-2 h-5 w-5" /> Claim your own
-          </div>
-    </Button>
-        </span>
+   
         </div>
       </section>
       </div>

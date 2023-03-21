@@ -137,6 +137,7 @@ export function Chat({ baseUrl }: { baseUrl: string }) {
   return (
     <div>
     <div className="rounded-2xl border-zinc-100  lg:border lg:p-6">
+      <div className="text-red-600 italic mb-2">! This chatbot lives for 24 hours. Click <span className="underline">here</span> to claim your chatbot for free.</div>
       {messages.map(({ message, who, sources, isPlausible }, index) => (
         <ChatLine key={index} who={who} message={message} sources={sources} isPlausible={isPlausible} />
       ))}

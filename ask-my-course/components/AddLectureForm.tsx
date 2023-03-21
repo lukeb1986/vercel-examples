@@ -1,15 +1,15 @@
 import { Label, TextInput, Button} from "flowbite-react";
-import React, { useState } from "react";
 import LoadingDots from "./LoadingDots";
 import { useCookies } from 'react-cookie'
+import React, { useEffect, useState } from "react";
 
 
-export default function AddLectureForm(workspaceHandle) {
+export default function AddLectureForm({ ownerEmail,  workspaceHandle}: { ownerEmail?:string, workspaceHandle?:string }) {
+  console.log("ownerEmail addlect", ownerEmail|| '')
   const [lecture, setLecture] = useState('')
+  const [email, setEmail] = useState(ownerEmail || '')
   const [loading, setLoading] = useState(false)
-  const [cookie, setCookie] = useCookies(['ask-my-course-user'])
-
-  console.log("cookie in lectureform", cookie['ask-my-course-user'])
+  const [cookie, setCookie] = useCookies(['ownerEmail'])
 
   const addLecture = async (youtube_url) => {
     const response = await fetch('/api/add_lecture', {
@@ -31,10 +31,30 @@ export default function AddLectureForm(workspaceHandle) {
       setLoading(false)
   };
 
+  const submitForm = async () => {
+    setEmail(email)
+    setCookie("ownerEmail", email)
+    addLecture(lecture)
+    setLecture('')
+  };
+
   return (
     <div>
-<div className="mt-6 flex flex-col gap-4 clear-both mb-10">
-    <div className="mt-6 flex clear-both w-full">
+<div className="mb-10">
+    <div className="mt-6 flex flex-col gap-3 w-full">
+
+    <input
+      id="email"
+      type="email"
+      placeholder="your email address"
+      required={true}
+      hidden={ownerEmail !== undefined}
+      value={email}
+      className="min-w-0 flex-auto appearance-none rounded-md bg-white placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 sm:text-sm"
+      onChange={(e) => {
+        setEmail(e.target.value)
+      }}
+    />
       
     <input
       id="lecture"
@@ -45,8 +65,7 @@ export default function AddLectureForm(workspaceHandle) {
       className="min-w-0 flex-auto appearance-none rounded-md bg-white placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 sm:text-sm"
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
-          addLecture(lecture)
-          setLecture('')
+          submitForm()
         }
       }}
       onChange={(e) => {
@@ -55,11 +74,9 @@ export default function AddLectureForm(workspaceHandle) {
     />
   {!loading && (<div><Button 
   gradientDuoTone="greenToBlue"
-  className="ml-2 flex-none"
   type="submit" 
   onClick={(e) => {
-      addLecture(lecture)
-      setLecture('')
+    submitForm()
     }}>
     Add Lecture
   </Button></div>) }
@@ -67,7 +84,6 @@ export default function AddLectureForm(workspaceHandle) {
   {loading && (
                   <Button
                   gradientDuoTone="greenToBlue"
-                  className="ml-2 h-20"
                   disabled
                   >
                     <LoadingDots color="white" style="large" />
